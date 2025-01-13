@@ -9,10 +9,10 @@ router.post('/login', login);
 // Change password route
 router.post('/change-password', changePassword);
 
-// Forgot password route (OTP generation)
+// Forgot password route
 router.post('/forgot-password', forgotPassword);
 
-// Reset password route (OTP validation and password reset)
+// Reset password route
 router.post('/reset-password', resetPassword);
 
 module.exports = router;
