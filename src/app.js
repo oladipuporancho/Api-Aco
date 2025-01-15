@@ -4,6 +4,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const connectDB = require('./config/db'); // MongoDB connection file
 const authRoutes = require('./routes/auth'); // Authentication routes
+const journalRoutes = require('./routes/journal')
+const multer = require('multer');
 
 dotenv.config();
 
@@ -19,7 +21,7 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
-
+app.use('/api' , journalRoutes);
 // Home route (Optional)
 app.get('/', (req, res) => {
   res.status(200).send('Welcome to the Admin API!');
