@@ -2,12 +2,19 @@ const Journal = require('../models/Journal');
 
 const postJournal = async (req, res) => {
   try {
-    const { title, content, volume, issue } = req.body;
+    const { title, content, date, volume, issue, page } = req.body;
 
     // Validate required fields
-    if (!title || !content || !volume) {
+    if (!title || !content || !volume || !page) {
       return res.status(400).json({
-        message: 'All required fields (title, content, volume) must be provided.',
+        message: 'All required fields (title, content, volume, page) must be provided.',
+      });
+    }
+
+    // Validate `page` as a number
+    if (isNaN(page) || page <= 0) {
+      return res.status(400).json({
+        message: 'The page field must be a positive number.',
       });
     }
 
@@ -18,14 +25,15 @@ const postJournal = async (req, res) => {
       });
     }
 
-    // Create a new journal entry with the current date
+    // Create a new journal entry
     const journal = new Journal({
       title,
       content,
-      date: new Date(), // Automatically generate the current date and time
+      date: date || new Date(),
       volume,
-      issue: issue ? Number(issue) : null, // Convert issue to a number or set it to null
-      file: req.file ? req.file.path : null, // Save file path if uploaded
+      issue: issue ? Number(issue) : null,
+      page: Number(page),
+      file: req.file ? req.file.path : null,
     });
 
     await journal.save();
@@ -38,8 +46,12 @@ const postJournal = async (req, res) => {
 // fetching all journals
 const getJournals = async (req, res) => {
   try {
-    const journals = await Journal.find().select('title content date volume issue file'); // Fetch all journals and select specific fields
-    res.status(200).json({ message: 'Journals retrieved successfully!', journals });
+    const journals = await Journal.find().sort({ createdAt: -1 }); // Fetch all journals
+
+    res.status(200).json({
+      message: 'Journals retrieved successfully!',
+      journals, // Each journal already includes `page` as part of the object
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching journals', error: error.message });
   }
