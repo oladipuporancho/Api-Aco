@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const { postJournal, getJournals } = require('../controllers/journalController');
+const { postJournal, getJournals, updateJournal, deleteJournal } = require('../controllers/journalController');
 
 const router = express.Router();
 
@@ -39,7 +39,7 @@ const upload = multer({
   fileFilter,
 });
 
-// POST route to create a journal
+// create a journal
 router.post('/journals', upload.single('file'), async (req, res) => {
   try {
     await postJournal(req, res); // Call the postJournal controller
@@ -54,6 +54,24 @@ router.get('/journals', async (req, res) => {
     await getJournals(req, res); // Call the getJournals controller
   } catch (err) {
     res.status(500).json({ message: 'Error fetching journals', error: err.message });
+  }
+});
+
+// PUT route to update a journal
+router.put('/journals/:id', upload.single('file'), async (req, res) => {
+  try {
+    await updateJournal(req, res); // Call the updateJournal controller
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating journal', error: err.message });
+  }
+});
+
+// DELETE route to delete a journal
+router.delete('/journals/:id', async (req, res) => {
+  try {
+    await deleteJournal(req, res); // Call the deleteJournal controller
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting journal', error: err.message });
   }
 });
 
