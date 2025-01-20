@@ -5,23 +5,23 @@ const postJournal = async (req, res) => {
     const { title, content, date, volume, issue, page } = req.body;
 
     // Validate required fields
-    if (!title || !content || !volume || !page) {
+    if (!title || !content || !volume || page === undefined || page === null) {
       return res.status(400).json({
         message: 'All required fields (title, content, volume, page) must be provided.',
       });
     }
 
-    // Validate `page` as a number
-    if (isNaN(page) || page <= 0) {
+    // Validate issue as a positive number if provided
+    if (issue && (isNaN(issue) || Number(issue) <= 0)) {
       return res.status(400).json({
-        message: 'The page field must be a positive number.',
+        message: 'The issue field must be a positive number.',
       });
     }
 
-    // Validate issue as a number if provided
-    if (issue && isNaN(issue)) {
+    // Validate content length
+    if (content.length < 10) {
       return res.status(400).json({
-        message: 'The issue field must be a valid number.',
+        message: 'The content field must be at least 10 characters long.',
       });
     }
 
@@ -32,7 +32,7 @@ const postJournal = async (req, res) => {
       date: date || new Date(),
       volume,
       issue: issue ? Number(issue) : null,
-      page: Number(page),
+      page, // No validation on `page` type
       file: req.file ? req.file.path : null,
     });
 
@@ -43,14 +43,13 @@ const postJournal = async (req, res) => {
   }
 };
 
-// fetching all journals
 const getJournals = async (req, res) => {
   try {
     const journals = await Journal.find().sort({ createdAt: -1 }); // Fetch all journals
 
     res.status(200).json({
       message: 'Journals retrieved successfully!',
-      journals, // Each journal already includes `page` as part of the object
+      journals,
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching journals', error: error.message });
@@ -60,12 +59,19 @@ const getJournals = async (req, res) => {
 const updateJournal = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, volume, issue } = req.body;
+    const { title, content, volume, issue, page } = req.body;
 
-    // Validate issue as a number if provided
-    if (issue && isNaN(issue)) {
+    // Validate issue as a positive number if provided
+    if (issue && (isNaN(issue) || Number(issue) <= 0)) {
       return res.status(400).json({
-        message: 'The issue field must be a valid number.',
+        message: 'The issue field must be a positive number.',
+      });
+    }
+
+    // Validate content length if provided
+    if (content && content.length < 10) {
+      return res.status(400).json({
+        message: 'The content field must be at least 10 characters long.',
       });
     }
 
@@ -74,6 +80,7 @@ const updateJournal = async (req, res) => {
       ...(content && { content }),
       ...(volume && { volume }),
       ...(issue && { issue: Number(issue) }),
+      ...(page !== undefined && { page }), // No type validation for `page`
       ...(req.file && { file: req.file.path }),
     };
 
